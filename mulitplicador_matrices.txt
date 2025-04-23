@@ -1,0 +1,133 @@
+#---------------------------------------------------
+# Sección de Datos (.data)
+#---------------------------------------------------
+.data
+
+# Matriz A (3x3)
+matrix_a:
+  .word 1, 2, 3
+  .word 4, 5, 6
+  .word 7, 8, 9
+
+# Matriz B (3x3)
+matrix_b:
+  .word 9, 8, 7
+  .word 6, 5, 4
+  .word 3, 2, 1
+
+# Matriz C (3x3)
+matrix_c:
+  .word 0, 0, 0
+  .word 0, 0, 0
+  .word 0, 0, 0
+
+# Cadenas para la visualización en consola
+newline:
+  .byte 10, 0       # ASCII de '\n' (10) seguido por el terminador NUL (0)
+space:
+  .byte 32, 0       # ASCII de ' ' (32) seguido por el terminador NUL (0)
+
+#---------------------------------------------------
+# Sección de Código (.text)
+#---------------------------------------------------
+.text
+.globl _start
+
+_start:
+  # --- 1. Inicialización ---
+  la s0, matrix_a
+  la s1, matrix_b
+  la s2, matrix_c
+  li s3, 0            # i = 0
+
+# --- 2. Bucles Anidados ---
+loop_i:
+  li s4, 0            # j = 0
+loop_j:
+  li t0, 0            # acumulador = 0
+  li s5, 0            # k = 0
+loop_k:
+  # Cargar A[i][k]
+  li t6, 3
+  mul t1, s3, t6
+  add t1, t1, s5
+  slli t1, t1, 2
+  add t2, s0, t1
+  lw t3, 0(t2)        # t3 = A[i][k]
+
+  # Cargar B[k][j]
+  # t6 sigue siendo 3
+  mul t1, s5, t6
+  add t1, t1, s4
+  slli t1, t1, 2
+  add t2, s1, t1
+  lw t4, 0(t2)        # t4 = B[k][j]
+
+  # Multiplicar y Acumular
+  mul t5, t3, t4
+  add t0, t0, t5
+
+  # Incrementar k y bucle interno
+  addi s5, s5, 1
+  li t6, 3
+  blt s5, t6, loop_k
+
+  # Guardar C[i][j]
+  li t6, 3
+  mul t1, s3, t6
+  add t1, t1, s4
+  slli t1, t1, 2
+  add t2, s2, t1
+  sw t0, 0(t2)        # C[i][j] = acumulador
+
+  # Incrementar j y bucle medio
+  addi s4, s4, 1
+  li t6, 3
+  blt s4, t6, loop_j
+
+  # Incrementar i y bucle externo
+  addi s3, s3, 1
+  li t6, 3
+  blt s3, t6, loop_i
+
+  # --- 3. Visualización ---
+  li s3, 0 # i = 0
+print_loop_i:
+  li s4, 0 # j = 0
+print_loop_j:
+  # Calcular dirección C[i][j]
+  li t6, 3
+  mul t1, s3, t6
+  add t1, t1, s4
+  slli t1, t1, 2
+  add t2, s2, t1
+  lw a1, 0(t2)        # a1 = C[i][j]
+
+  # Imprimir entero (syscall 1)
+  li a0, 1
+  ecall
+
+  # Imprimir espacio (syscall 4)
+  la a1, space        # a1 = dirección de space
+  li a0, 4
+  ecall
+
+  # Incrementar j
+  addi s4, s4, 1
+  li t6, 3
+  blt s4, t6, print_loop_j
+
+  # Imprimir nueva línea (syscall 4)
+  la a1, newline      # a1 = dirección de newline
+  li a0, 4
+  ecall
+
+  # Incrementar i
+  addi s3, s3, 1
+  li t6, 3
+  blt s3, t6, print_loop_i
+
+  # --- 4. Terminar ---
+exit:
+  li a0, 10           # syscall 10: exit
+  ecall
