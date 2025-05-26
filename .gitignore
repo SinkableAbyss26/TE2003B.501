@@ -1,0 +1,21 @@
+# Carpetas a ignorar completamente
+db/
+incremental_db/
+output_files/
+simulation/
+
+# Archivos de backup
+*.bak
+
+# Archivos de formas de onda y simulación comunes (opcional, pero bueno incluirlos)
+*.vcd
+*.vvp
+*.wlf
+transcript
+
+# Archivos temporales y de sistema operativo (opcional, pero bueno incluirlos)
+*.log
+*.tmp
+*~
+Thumbs.db
+.DS_Store
